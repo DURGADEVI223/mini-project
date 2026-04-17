@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 include 'conn.php';
@@ -8,40 +7,35 @@ if(!isset($_SESSION['admin_id'])){
     exit();
 }
 
-if(!isset($_GET['id'])){
-    die("Invalid request.");
+if(!isset($_GET['id']) || !is_numeric($_GET['id'])){
+    die("Invalid ID");
 }
 
 $id = intval($_GET['id']);
 
-/* EXTRA VALIDATION */
-if(!is_numeric($id)){
-    die("Invalid ID");
-}
-
-// Ensure booking exists AND status is PAID
+/* CHECK STATUS */
 $check = $conn->prepare("SELECT status FROM bookings WHERE id=?");
 $check->bind_param("i", $id);
 $check->execute();
-$check->store_result();
+$result = $check->get_result();
 
-if($check->num_rows == 0){
+if($result->num_rows == 0){
     die("Booking not found.");
 }
 
-$check->bind_result($status);
-$check->fetch();
+$row = $result->fetch_assoc();
 
-if($status != "Paid"){
+if($row['status'] != "Paid"){
     die("Only PAID bookings can be confirmed.");
 }
 
+/* UPDATE */
 $stmt = $conn->prepare("UPDATE bookings SET status='Confirmed' WHERE id=?");
 $stmt->bind_param("i", $id);
 
 if($stmt->execute()){
-    echo "<script>alert('Booking confirmed successfully!');window.location='admin_bookings.php';</script>";
+    header("Location: admin_bookings.php");
 } else {
-    echo "<script>alert('Error. Try again.');window.location='admin_bookings.php';</script>";
+    echo "Error.";
 }
 ?>
