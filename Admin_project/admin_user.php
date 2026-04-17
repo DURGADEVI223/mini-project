@@ -3,22 +3,32 @@ session_start();
 include 'conn.php';
 include 'header.php';
 
-if (!isset($_SESSION['admin_id'])) {
+if(!isset($_SESSION['admin_id'])){
     header("Location: admin_login.php");
     exit();
 }
 
-/* DELETE USER */
-if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']);
+/* 🔥 DELETE USER (POST SECURE) */
+if(isset($_POST['delete'])){
+    $id = intval($_POST['user_id']);
 
-    $stmt = $conn->prepare("DELETE FROM user WHERE id = ? AND role = 'customer'");
+    /* 🔥 DELETE BOOKINGS FIRST */
+    $stmt = $conn->prepare("DELETE FROM bookings WHERE user_id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $stmt->close();
 
-    header("Location: admin_user.php");
-    exit();
+    /* 🔥 DELETE USER */
+    $stmt = $conn->prepare("DELETE FROM user WHERE id=? AND role='customer'");
+    $stmt->bind_param("i", $id);
+
+    if($stmt->execute()){
+        echo "<script>alert('User & bookings deleted'); window.location='admin_user.php';</script>";
+    } else {
+        echo "<script>alert('Delete failed');</script>";
+    }
+
+    $stmt->close();
 }
 
 /* PAGINATION */
@@ -26,10 +36,11 @@ $limit = 8;
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 
-$sql = "SELECT id, fullname, username, phone,created_at
+/* GET DATA */
+$sql = "SELECT id, fullname, username, phone, created_at
         FROM user 
         WHERE role='customer'
-		ORDER BY user.created_at DESC, user.id DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT $limit OFFSET $offset";
 
 $result = $conn->query($sql);
@@ -82,15 +93,20 @@ color:white;
     <td><?= htmlspecialchars($row['fullname']); ?></td>
     <td><?= htmlspecialchars($row['username']); ?></td>
     <td><?= htmlspecialchars($row['phone']); ?></td>
-<td>
-<?= date("d/m/Y h:i A", strtotime($row['created_at'])); ?>
-</td>    <td>
-        <a href="?delete=<?= $row['id']; ?>"
-           class="btn btn-danger btn-sm"
-           onclick="return confirm('Delete this user?')">
-           Delete
-        </a>
+    <td><?= date("d/m/Y h:i A", strtotime($row['created_at'])); ?></td>
+
+    <td>
+        <!-- 🔥 DELETE BUTTON (POST) -->
+        <form method="POST" style="display:inline;">
+            <input type="hidden" name="user_id" value="<?= $row['id']; ?>">
+            <button type="submit" name="delete"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Delete this user?')">
+                Delete
+            </button>
+        </form>
     </td>
+
 </tr>
 <?php endwhile; ?>
 
@@ -118,4 +134,5 @@ color:white;
 <a href="admin_dashboard.php" class="btn btn-secondary">Back</a>
 
 </div>
+
 <?php include 'footer.php'; ?>

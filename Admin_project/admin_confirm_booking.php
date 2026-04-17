@@ -14,6 +14,11 @@ if(!isset($_GET['id'])){
 
 $id = intval($_GET['id']);
 
+/* EXTRA VALIDATION */
+if(!is_numeric($id)){
+    die("Invalid ID");
+}
+
 // Ensure booking exists AND status is PAID
 $check = $conn->prepare("SELECT status FROM bookings WHERE id=?");
 $check->bind_param("i", $id);

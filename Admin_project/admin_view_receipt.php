@@ -1,23 +1,48 @@
 <?php
 session_start();
 include 'conn.php';
+include 'header.php';
 
 if (!isset($_SESSION['admin_id'])) {
     die("Access denied");
 }
 
-if (!isset($_GET['file'])) {
-    die("No file");
+if (!isset($_GET['id'])) {
+    die("No ID");
 }
 
-$file = basename($_GET['file']);
-$path = "../uploads/" . $file;
+$id = intval($_GET['id']);
 
-if (!file_exists($path)) {
-    die("File not found");
+/* ✔️ FIX: ambil receipt + user_id dari DB */
+$stmt = $conn->prepare("SELECT receipt, user_id FROM bookings WHERE id=?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows == 0) {
+    die("Booking not found");
 }
 
+$row = $result->fetch_assoc();
+
+if (empty($row['receipt'])) {
+    die("No receipt");
+}
+
+$file = basename($row['receipt']);
+$user_id = $row['user_id'];
+
+$path = "../uploads/receipts/" . $user_id . "/" . $file;
+
+
+/* FILE TYPE VALIDATION */
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+$allowed = ['jpg','jpeg','png','pdf'];
+
+if(!in_array($ext, $allowed)){
+    die("Invalid file type");
+}
+
 ?>
 
 <!DOCTYPE html>

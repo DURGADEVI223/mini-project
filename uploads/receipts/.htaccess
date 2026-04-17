@@ -1,0 +1,12 @@
+# 1. Menghalang pelaksanaan skrip (PHP, JS, dsb) dalam folder ini
+Options -ExecCGI
+php_flag engine off
+
+# 2. Menghalang akses terus kepada fail-fail skrip yang berbahaya
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|html|sh|cgi)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 3. Menghalang "Directory Browsing" (supaya orang tak boleh tengok senarai fail)
+Options -Indexes

@@ -3,10 +3,11 @@ session_start();
 include 'conn.php';
 include 'header.php';
 
-if (!isset($_SESSION['admin_id'])) {
+if(!isset($_SESSION['admin_id'])){
     header("Location: admin_login.php");
     exit();
 }
+
 
 $pending = $conn->query("SELECT COUNT(*) as t FROM bookings WHERE status='Pending'")
 ->fetch_assoc()['t'];

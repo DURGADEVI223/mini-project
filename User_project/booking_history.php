@@ -1,4 +1,5 @@
 <?php
+session_start();
 include "conn.php";
 include "header.php";
 
@@ -10,7 +11,12 @@ if(!isset($_SESSION['user_id'])){
 $user_id = $_SESSION['user_id'];
 
 /* GET DATA */
-$stmt = mysqli_prepare($conn, "SELECT * FROM bookings WHERE user_id=? ORDER BY created_at DESC");
+$stmt = mysqli_prepare($conn, "
+    SELECT * 
+    FROM bookings 
+    WHERE user_id=? 
+    ORDER BY created_at DESC
+");
 mysqli_stmt_bind_param($stmt,"i",$user_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);

@@ -6,8 +6,9 @@ include 'header.php';
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['admin_username'] ?? '';
-$password = $_POST['admin_password'] ?? '';
+
+    $username = htmlspecialchars(trim($_POST['admin_username']));
+    $password = trim($_POST['admin_password']);
 
     $stmt = $conn->prepare("SELECT id, fullname, password, role FROM user WHERE username = ?");
     $stmt->bind_param("s", $username);
@@ -15,28 +16,36 @@ $password = $_POST['admin_password'] ?? '';
     $result = $stmt->get_result();
 
     if ($row = $result->fetch_assoc()) {
+
         if (password_verify($password, $row['password'])) {
 
             if ($row['role'] == 'admin') {
+
+                session_regenerate_id(true);
+
                 $_SESSION['admin_id'] = $row['id'];
                 $_SESSION['admin_name'] = $row['fullname'];
+                $_SESSION['role'] = $row['role'];
 
                 header("Location: admin_dashboard.php");
                 exit();
+
             } else {
-                $error = "Access denied. Not admin.";
+                $error = "Access denied. Not admin account.";
             }
 
         } else {
-            $error = "Invalid password.";
+            $error = "Invalid username or password.";
         }
+
     } else {
-        $error = "Username not found.";
+        $error = "Invalid username or password.";
     }
 
     $stmt->close();
 }
 ?>
+
 
 <style>
 /* Purple Theme */
@@ -62,50 +71,45 @@ $password = $_POST['admin_password'] ?? '';
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-5">
+
             <div class="card shadow login-card">
                 <div class="card-body p-4">
-                    <h3 class="text-center mb-4 login-title">Login</h3>
-					
-                    <!-- Success Message -->
-                    <?php if (isset($_SESSION['success'])): ?>
-                        <div class="alert alert-success">
-                            <?php
-                                echo htmlspecialchars($_SESSION['success']);
-                                unset($_SESSION['success']);
-                            ?>
-                        </div>
-                    <?php endif; ?>
+
+                    <h3 class="text-center mb-4 login-title">Admin Login</h3>
 
                     <!-- ERROR MESSAGE -->
                     <?php if (!empty($error)): ?>
                         <div class="alert alert-danger text-center">
-                            <?php echo htmlspecialchars($error); ?>
+                            <?= htmlspecialchars($error); ?>
                         </div>
                     <?php endif; ?>
+
                     <!-- FORM -->
                     <form method="POST" autocomplete="off">
 
-					<label class="form-label">Username</label>
-					<input type="text"
-					name="admin_username"
-					class="form-control mb-2"
-					placeholder="Enter username"
-					autocomplete="off">
+                        <label class="form-label">Username</label>
+                        <input type="text"
+                               name="admin_username"
+                               class="form-control mb-2"
+                               placeholder="Enter username"
+                               required
+                               autocomplete="off">
 
-    <label class="form-label">Password</label>
-    <input type="password"
-        name="admin_password"
-        class="form-control mb-3"
-        placeholder="Enter password"
-        autocomplete="new-password">
+                        <label class="form-label">Password</label>
+                        <input type="password"
+                               name="admin_password"
+                               class="form-control mb-3"
+                               placeholder="Enter password"
+                               required
+                               autocomplete="new-password">
 
-		<button type="submit" class="btn btn-purple w-100">
-			Login
-			</button>
+                        <button type="submit" class="btn btn-purple w-100">
+                            Login
+                        </button>
 
-				</form>
                     </form>
-                    <!-- FOOTER LINK (LIKE USER LOGIN) -->
+
+                    <!-- FOOTER -->
                     <p class="text-center mt-3 mb-0">
                         Don't have an account?
                         <a href="admin_register.php" style="color:#a855f7;">
@@ -115,8 +119,10 @@ $password = $_POST['admin_password'] ?? '';
 
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
+</body>
 <?php include 'footer.php'; ?>

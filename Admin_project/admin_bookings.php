@@ -7,6 +7,16 @@ if(!isset($_SESSION['admin_id'])){
     header("Location: admin_login.php");
     exit();
 }
+/* STATUS FUNCTION (RUBRIK) */
+function getStatusBadge($status){
+    if($status == "Pending"){
+        return "<span class='badge bg-warning'>Pending</span>";
+    } elseif($status == "Paid"){
+        return "<span class='badge bg-info'>Paid</span>";
+    } else {
+        return "<span class='badge bg-success'>Confirmed</span>";
+    }
+}
 
 /* PAGINATION */
 $limit = 8;
@@ -88,7 +98,7 @@ $totalPages = ceil($totalRow['total'] / $limit);
     <td>
         <?php if(!empty($row['receipt'])): ?>
 
-            <a href="admin_view_receipt.php?file=<?= $row['receipt']; ?>" 
+            <a href="admin_view_receipt.php?id=<?= $row['id']; ?>" 
 			class="btn btn-sm btn-primary">
 			View
 			</a>

@@ -78,7 +78,7 @@ if (isset($_POST['proceed'])) {
 </style>
 
 <div class="form-box text-center fw-bold mb-3 booking-title">
-    Ticket Booking
+    TICKET BOOKING
 </div>
 
 <!-- USER INFO -->
